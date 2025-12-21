@@ -1,37 +1,61 @@
-# 📈 Automated Stock Monitor
+# 📈 Automated Stock Portfolio Reporter (Discord Integration)
 
-An automated monitoring system that tracks specific market assets and delivers a daily performance snapshot directly to Facebook Messenger. Designed to run completely in the cloud using **GitHub Actions**.
+An automated financial monitoring tool that tracks a personalized stock watchlist and delivers daily performance snapshots directly to a private **Discord Server**. 
 
-## 🚀 Features
+Designed to run autonomously in the cloud using **GitHub Actions** CI/CD pipelines, removing the need for a dedicated server or local machine.
 
-* **Automated Daily Reporting:** Runs automatically every morning (09:00 UTC+7) via CI/CD pipelines.
-* **Smart Categorization:** Splits assets into "Bucket A" (Stable/Proven) and "Bucket B" (High Growth/Risk) for clearer analysis.
-* **Trend Analysis:** Calculates daily movement (UP/DOWN percentages) against the previous close.
-* **Buy Zone Alerts:** Triggers a special alarm if a stock drops below a predefined target price.
-* **Mobile Push:** Uses CallMeBot API to bridge Python logic with Facebook Messenger.
+## 🚀 Key Features
+
+* **Automated Daily Reporting:** Executes every morning (09:00 UTC+7) via a scheduled Cron job on GitHub Actions.
+* **Risk-Based Categorization:**
+    * **Bucket A:** Proven/Stable Stocks (Core Portfolio)
+    * **Bucket B:** High-Growth/Speculative Stocks (Satellite Portfolio)
+* **Trend Analysis:** Calculates real-time percentage movement (UP/DOWN) relative to the previous market close.
+* **Buy Zone Alerts:** Triggers a high-priority alert if a stock drops below a specific target price.
+* **Discord Integration:** Uses Webhooks for instant, reliable, and formatted push notifications without complex API keys.
 
 ## 🛠️ Tech Stack
 
 * **Language:** Python 3.9
-* **Data Source:** `yfinance` (Yahoo Finance API)
-* **Automation:** GitHub Actions (Cron Scheduler)
-* **Notification:** REST API (CallMeBot / Messenger)
-* **Data Handling:** JSON & Pandas
+* **Market Data:** `yfinance` (Yahoo Finance API)
+* **Automation:** GitHub Actions (Ubuntu VM)
+* **Notifications:** Discord Webhook API
+* **Data Handling:** Pandas & JSON
 
-## ⚙️ How It Works
+## ⚙️ Logic & Architecture
 
-1.  **Trigger:** GitHub Actions wakes up the virtual machine on a schedule (Cron).
-2.  **Fetch:** The Python script queries live market data for the defined watchlist.
-3.  **Analyze:** Logic checks current prices against target thresholds and previous close.
-4.  **Report:** The system compiles a formatted summary and pushes it via HTTP Request to the user's device.
+1.  **Trigger:** GitHub Actions initializes a virtual environment on a daily schedule.
+2.  **Fetch:** The Python script pulls real-time market data for the defined watchlist.
+3.  **Analyze:** * Compares `Current Price` vs `Target Price`.
+    * Calculates day-over-day percentage change.
+    * Sorts assets into Risk Buckets.
+4.  **Broadcast:** Formats the data into a clean report and POSTs it to the specific Discord Channel via Webhook.
 
-## 📂 Project Structure
-```text
-├── .github/workflows/daily_run.yml  # The Automation Logic (Cron)
-├── script.py                        # The Core Python Script
-├── requirements.txt                 # Dependencies (yfinance, etc.)
-└── README.md                        # Documentation
-```
+## 📦 Installation & Setup
+
+If you want to run this yourself:
+
+1.  **Clone the Repo**
+    ```bash
+    git clone [https://github.com/your-username/watchlist-stock-tracker.git](https://github.com/your-username/watchlist-stock-tracker.git)
+    ```
+
+2.  **Get a Discord Webhook**
+    * Go to your Discord Server settings → Integrations → Webhooks.
+    * Create a new Webhook and copy the **Webhook URL**.
+
+3.  **Configure Secrets (for GitHub Actions)**
+    * Go to Repo Settings → Secrets and variables → Actions.
+    * Create a new secret named `DISCORD_URL`.
+    * Paste your Webhook URL there.
+
+4.  **Run Locally (Optional)**
+    * Install dependencies: `pip install yfinance requests`
+    * Set the environment variable and run:
+    ```bash
+    export DISCORD_URL="your_webhook_url_here"
+    python watchlist.py
+    ```
 
 ## ⚠️ Disclaimer
-This tool is for educational and personal tracking purposes only. It does not constitute financial advice.
+This project is for educational purposes and personal tracking only. It is not financial advice.
