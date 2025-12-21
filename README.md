@@ -3,6 +3,7 @@
 An automated financial monitoring tool that tracks a personalized stock watchlist and delivers daily performance snapshots directly to a private **Discord Server**. 
 Designed to run autonomously in the cloud using **GitHub Actions** CI/CD pipelines, removing the need for a dedicated server or local machine.
 
+Demo Screenshot:
 ![Demo Screenshot](images/demo-pic.png)
 
 ## 🚀 Key Features
