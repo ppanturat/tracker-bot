@@ -4,6 +4,8 @@ An automated financial monitoring tool that tracks a personalized stock watchlis
 
 Designed to run autonomously in the cloud using **GitHub Actions** CI/CD pipelines, removing the need for a dedicated server or local machine.
 
+![Demo Screenshot](images/demo.png)
+
 ## 🚀 Key Features
 
 * **Automated Daily Reporting:** Executes every morning (09:00 UTC+7) via a scheduled Cron job on GitHub Actions.
