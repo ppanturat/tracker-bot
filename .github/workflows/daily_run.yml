@@ -1,0 +1,30 @@
+name: Daily Stock Report
+
+on:
+  schedule:
+    #run at 02:00 UTC (09:00 AM Thailand Time)
+    - cron: '0 2 * * *'
+  #allow you to click "Run Now" manually for testing
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install libraries
+        run: pip install yfinance requests
+
+      - name: Run Report Script
+        env:
+          #passes the secret from GitHub Settings to the script
+          APIKEY: ${{ secrets.APIKEY }}
+        run: python script.py
