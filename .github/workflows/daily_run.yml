@@ -26,5 +26,5 @@ jobs:
       - name: Run Report Script
         env:
           #passes the secret from GitHub Settings to the script
-          APIKEY: ${{ secrets.APIKEY }}
+          DISCORD_URL: ${{ secrets.DISCORD_URL }}
         run: python script.py

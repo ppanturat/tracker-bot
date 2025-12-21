@@ -4,23 +4,24 @@ import requests
 import urllib.parse
 from datetime import datetime, timezone, timedelta
 
-APIKEY = os.environ.get('APIKEY')     #CallMeBot API Key
-LOGFILE = 'sent_log.json'       #Json file to remember alerts
+#discord server url to send message
+DISCORD_URL = os.environ.get('DISCORD_URL')
 
 #list of stocks i want to keep track of (K = stock symbol | V = target price)
 #first 5 i classify in Bucket A, and the other 5 is B <<< u can edit this, but dont forget to edit the code below
 watchlist = {'ETN': 225.00, 'SYM': 30.00, 'ISRG': 275.00, 'PLTR': 80.00, 'CDNS': 220.00,
              'SDGR': 15.00, 'PACB': 1.50, 'RKLB': 20.00, 'S': 7.00, 'IONQ': 15.00}
 
-#function to send message to messenger using CallMeBot
-def send_alert_message(message):
-    quote = urllib.parse.quote(message)
-    url = f'https://api.callmebot.com/facebook/send.php?apikey={APIKEY}&text={quote}'
-    try:
-        requests.get(url)
-        print('message sent')
-    except Exception as e:
-        print(f'ERROR: {e}')
+#function to send message to discord
+def send_discord_message(message):
+    data = {
+        "content": message
+    }
+    response = requests.post(DISCORD_URL, json=data)
+    if response.status_code == 204:
+        print('message has been sent to discord')
+    else:
+        print(f"Error: {response.status_code} - {response.text}")
 
 messages = ['', '']    #for price report (index 0 = Bucket A, index 1 = Bucket B)
 alert = ""             #for alert message
@@ -59,11 +60,11 @@ for ticker, targetPrice in watchlist.items():
 
 #compile final message
 final_message = f"""Price Report ({datetime.now(tz=timezone(timedelta(hours=7))).strftime("%Y-%m-%d %H:%M")})
-\n----------------- Bucket A: Proven Stocks (No Risk) ------------------
+\n----------- Bucket A: Proven Stocks (No Risk) -------------
 {messages[0]}
------------------ Bucket B: Diamonds(?) (High-Risk) ------------------
+----------- Bucket B: Diamonds(?) (High-Risk) -------------
 {messages[1]}
 """ + alert
 
-#send the message to user
-send_alert_message(final_message)
+#send the message to discord server
+send_discord_message(final_message)
