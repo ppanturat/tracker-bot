@@ -1,8 +1,8 @@
-# 📈 Automated Stock Portfolio Reporter (Discord Integration)
+# 📈 Automated Stock Tracker (Discord Integration)
 
 An automated financial monitoring tool that tracks a personalized stock watchlist and delivers daily performance snapshots directly to a private **Discord Server**. 
-
 Designed to run autonomously in the cloud using **GitHub Actions** CI/CD pipelines, removing the need for a dedicated server or local machine.
+![Demo Screenshot](https://drive.google.com/file/d/1PJPw2ar8a_p-zA_cnmBfi5nE2pxsb9fP/view?usp=sharing)
 
 ![Demo Screenshot](images/demo.png)
 
