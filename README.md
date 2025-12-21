@@ -1,4 +1,4 @@
-# 📈 Automated Stock Portfolio Reporter
+# 📈 Automated Stock Monitor
 
 An automated monitoring system that tracks specific market assets and delivers a daily performance snapshot directly to Facebook Messenger. Designed to run completely in the cloud using **GitHub Actions**.
 
