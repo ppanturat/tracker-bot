@@ -89,7 +89,7 @@ def process_bucket(stock_list):
 msg_a, alert_a = process_bucket(bucket_a)
 msg_b, alert_b = process_bucket(bucket_b)
 
-timestamp = datetime.now(tz=timezone(timedelta(hours=7))).strftime("%d/%m %H:%M")
+timestamp = datetime.now(tz=timezone(timedelta(hours=7))).strftime("%d %b %Y %H:%M")
 
 final_message = f"""# 📈 Price Report ({timestamp})
 
