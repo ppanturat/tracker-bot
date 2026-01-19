@@ -1,63 +1,114 @@
-# 📈 Automated Stock Tracker (Discord Integration)
+---
+# 📦 Universal Discord Tracker (Stocks & Parcels)
 
-An automated financial monitoring tool that tracks a personalized stock watchlist and delivers daily performance snapshots directly to a private **Discord Server**. 
-Designed to run autonomously in the cloud using **GitHub Actions** CI/CD pipelines, removing the need for a dedicated server or local machine.
+A serverless, zero-cost Discord bot that tracks **Stock Prices** and **Parcel Shipments**. 
 
-Demo Screenshot:
-![Demo Screenshot](images/demo-pic.png)
+Built with **Python**, hosted on **Vercel** (for commands), and powered by **GitHub Actions** (for scheduled updates). It uses **Supabase** as the database memory.
 
-## 🚀 Key Features
+---
 
-* **Automated Daily Reporting:** Executes every morning (09:00 UTC+7) via a scheduled Cron job on GitHub Actions.
-* **Risk-Based Categorization:**
-    * **Bucket A:** Proven/Stable Stocks (Core Portfolio)
-    * **Bucket B:** High-Growth/Speculative Stocks (Satellite Portfolio)
-* **Trend Analysis:** Calculates real-time percentage movement (UP/DOWN) relative to the previous market close.
-* **Buy Zone Alerts:** Triggers a high-priority alert if a stock drops below a specific target price.
-* **Discord Integration:** Uses Webhooks for instant, reliable, and formatted push notifications without complex API keys.
+## 🚀 Features
 
-## 🛠️ Tech Stack
+### 📈 Stock Tracker
+* **Watchlist Management:** Add/Edit/Delete stocks directly from Discord.
+* **Buckets System:** Organize stocks into "Bucket A" (Proven) and "Bucket B" (High Risk).
+* **Daily Reports:** Sends a price summary every day at **2:00 PM (Thailand Time)**.
+* **Buy Zone Alerts:** Instant warnings if a stock dips below your target price.
 
-* **Language:** Python 3.9
-* **Market Data:** `yfinance` (Yahoo Finance API)
-* **Automation:** GitHub Actions (Ubuntu VM)
-* **Notifications:** Discord Webhook API
-* **Data Handling:** Pandas & JSON
+### 📦 Parcel Tracker
+* **Multi-Carrier Support:** Powered by 17Track (supports Flash, Kerry, ThaiPost, J&T, etc.).
+* **Real-Time Updates:** Checks status every **30 minutes**. Only pings you if the status *changes*.
+* **Daily Summary:** Sends a list of all active parcels at 2:00 PM.
+* **Auto-Cleaning:** Automatically deletes parcels from the database once they are marked "Delivered."
 
-## ⚙️ Logic & Architecture
+---
 
-1.  **Trigger:** GitHub Actions initializes a virtual environment on a daily schedule.
-2.  **Fetch:** The Python script pulls real-time market data for the defined watchlist.
-3.  **Analyze:** * Compares `Current Price` vs `Target Price`.
-    * Calculates day-over-day percentage change.
-    * Sorts assets into Risk Buckets.
-4.  **Broadcast:** Formats the data into a clean report and POSTs it to the specific Discord Channel via Webhook.
+## 🧠 Architecture: The "Split-Brain" System
 
-## 📦 Installation & Setup
+This project uses two separate brains to stay 100% free and serverless.
 
-If you want to run this yourself:
+| Component | Service | Role |
+| :--- | :--- | :--- |
+| **The Listener** | **Vercel** | Wakes up only when you type a command (e.g., `/add_stock`). Updates Supabase instantly. |
+| **The Watcher** | **GitHub Actions** | Wakes up on a schedule (Daily & Every 30 mins). Checks prices/parcels and sends reports. |
+| **The Memory** | **Supabase** | Stores your watchlist and active tracking numbers. |
 
-1.  **Clone the Repo**
-    ```bash
-    git clone [https://github.com/your-username/watchlist-stock-tracker.git](https://github.com/your-username/watchlist-stock-tracker.git)
-    ```
+---
 
-2.  **Get a Discord Webhook**
-    * Go to your Discord Server settings → Integrations → Webhooks.
-    * Create a new Webhook and copy the **Webhook URL**.
+## 🛠️ Slash Commands
 
-3.  **Configure Secrets (for GitHub Actions)**
-    * Go to Repo Settings → Secrets and variables → Actions.
-    * Create a new secret named `DISCORD_URL`.
-    * Paste your Webhook URL there.
+| Command | Usage | Description |
+| :--- | :--- | :--- |
+| `/add_stock` | `[symbol] [target] [bucket]` | Add a stock to the watchlist (e.g., `NVDA 100 A`). |
+| `/edit_stock` | `[symbol] [new_target]` | Update the target buy price for a stock. |
+| `/delete_stock`| `[symbol]` | Remove a stock from the watchlist. |
+| `/list_stock` | n/a | View current watchlist settings instantly. |
+| `/track` | `[number]` | Start tracking a parcel (e.g., `TH12345678`). |
+| `/parcels` | n/a | Show your list of currently active parcels. |
 
-4.  **Run Locally (Optional)**
-    * Install dependencies: `pip install yfinance requests`
-    * Set the environment variable and run:
-    ```bash
-    export DISCORD_URL="your_webhook_url_here"
-    python watchlist.py
-    ```
+---
 
-## ⚠️ Disclaimer
-This project is for educational purposes and personal tracking only. It is not financial advice.
+## ⚙️ Setup & Configuration
+
+### 1. Environment Variables (Secrets)
+Both **Vercel** and **GitHub Actions** require these secrets to function.
+
+| Key | Description | Required In |
+| :--- | :--- | :--- |
+| `DISCORD_URL` | Webhook URL for the **Stock Channel**. | GitHub |
+| `PARCEL_WEBHOOK_URL`| Webhook URL for the **Parcel Channel**. | GitHub |
+| `PARCEL_TRACK_DISCORD_URL`| Webhook URL for **Parcel Alerts** (30 min updates). | GitHub |
+| `SUPABASE_URL` | Your Supabase Project URL. | Vercel & GitHub |
+| `SUPABASE_KEY` | Your Supabase `service_role` or `anon` key. | Vercel & GitHub |
+| `TRACK17_KEY` | API Access Token from 17Track. | Vercel & GitHub |
+| `DISCORD_PUBLIC_KEY` | Public Key from Discord Developer Portal. | **Vercel Only** |
+
+### 2. Database Schema (Supabase)
+
+**Table: `stocks`**
+```sql
+create table stocks (
+  id bigint generated by default as identity primary key,
+  symbol text not null,
+  target_price decimal not null,
+  bucket text not null, -- 'A' or 'B'
+  created_at timestamp with time zone default now()
+);
+
+```
+
+**Table: `parcels**`
+
+```sql
+create table parcels (
+  id bigint generated by default as identity primary key,
+  tracking_number text not null,
+  last_status text default 'Registered',
+  discord_user_id text not null,
+  created_at timestamp with time zone default now()
+);
+
+```
+
+---
+
+## 📂 Project Structure
+
+```text
+├── .github/workflows/
+│   ├── daily_report.yml    # Runs daily at 2 PM (Stocks + Parcel Summary)
+│   └── parcel_watcher.yml  # Runs every 30 mins (Real-time updates)
+├── api/
+│   └── index.py            # Vercel Serverless Function (The "Listener")
+├── check_stocks.py         # Script: Generates Daily Stock Report
+├── check_parcels.py        # Script: Checks for parcel status changes
+├── daily_parcel_report.py  # Script: Summarizes all parcels
+├── register_commands.py    # Utility: Registers slash commands with Discord
+├── requirements.txt        # Python dependencies
+└── README.md               # You are here
+
+```
+---
+
+*Created for personal use. 100% Automated.*
+
