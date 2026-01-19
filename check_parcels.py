@@ -1,10 +1,10 @@
 import os
 import requests
-import json
 from supabase import create_client
 
 # --- CONFIGURATION ---
-DISCORD_URL = os.environ.get('DISCORD_URL') 
+# Using the variable names from your snippet
+PARCEL_TRACK_DISCORD_URL = os.environ.get('PARCEL_TRACK_DISCORD_URL') 
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 TRACK17_KEY = os.environ.get('TRACK17_KEY')
@@ -12,25 +12,22 @@ TRACK17_KEY = os.environ.get('TRACK17_KEY')
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def send_discord_message(content):
-    requests.post(DISCORD_URL, json={"content": content})
+    requests.post(PARCEL_TRACK_DISCORD_URL, json={"content": content})
 
 def check_parcels():
-    # Get active parcels (Ignore ones that are already 'Delivered')
-    # We use a filter: last_status IS NOT 'Delivered'
+    # 1. Fetch active parcels
+    # logic: Get everything that is NOT strictly 'Delivered'
     response = supabase.table('parcels').select("*").neq('last_status', 'Delivered').execute()
     parcels = response.data
 
     if not parcels:
-        print("No active parcels to check.")
+        # Silent exit (Internal check only)
         return
 
-    # Prepare Payload for 17Track
-    # We create a list of numbers to check
-    payload = []
-    for p in parcels:
-        payload.append({"number": p['tracking_number']})
+    # 2. Prepare Payload for 17Track
+    payload = [{"number": p['tracking_number']} for p in parcels]
 
-    # call 17Track API
+    # 3. Call 17Track API
     headers = {"RF-TOKEN": TRACK17_KEY, "Content-Type": "application/json"}
     url = "https://api.17track.net/track/v2.2/gettrackinfo"
 
@@ -44,39 +41,54 @@ def check_parcels():
             
         track_infos = data.get("data", {}).get("accepted", [])
 
-        # Compare and Notify
+        # 4. Compare and Notify
         for info in track_infos:
             number = info.get("number")
             
-            # Find the matching parcel in our DB list
-            # (Simple logic: find the first match)
+            # Find matching parcel in DB
             db_parcel = next((p for p in parcels if p['tracking_number'] == number), None)
             
             if db_parcel:
-                # 17Track Status Codes: 10=InTransit, 30=Pickup, 40=Delivered, etc.
-                # We prioritize the "latest_event" description for the message
+                # Get the detailed context (e.g. "Arrived at Sorting Center")
                 track_events = info.get("track_info", {}).get("latest_event", {})
-                new_status_desc = track_events.get("context", "Unknown Status")
+                latest_detail = track_events.get("context", "Unknown Status")
                 
-                # Check 17Track's "Package Status" category (e.g., 'Delivered')
-                # If package is delivered, we want to save that specific word to stop tracking it.
-                package_status_stage = info.get("track_info", {}).get("latest_status", {}).get("status")
-                
-                # Map stage code to text for the DB (simplified)
-                stage_map = {10: "In Transit", 30: "Pick Up", 40: "Delivered", 50: "Alert"}
-                current_stage_text = stage_map.get(package_status_stage, "In Transit")
+                # Get the generic stage (10=InTransit, 40=Delivered)
+                stage = info.get("track_info", {}).get("latest_status", {}).get("status")
 
-                # If the description CHANGED, notify the user
-                if db_parcel['last_status'] != current_stage_text:
+                # --- NEW LOGIC ---
+                # Determine what status string we want to save/compare
+                if stage == 40:
+                    # If Delivered, force status to "Delivered" so the DB filter stops checking it next time
+                    current_status = "Delivered"
+                else:
+                    # Otherwise, use the DETAILED description so we get updates on every move
+                    current_status = latest_detail
+
+                # Clean up: 17Track sometimes sends long details, truncate if needed
+                current_status = current_status[:200] if current_status else "In Transit"
+
+                # Check if it CHANGED since the last time we checked
+                if db_parcel['last_status'] != current_status:
                     
-                    # Send Discord Ping
+                    # 🔔 IT CHANGED! Send Message for THIS parcel only.
                     user_id = db_parcel['discord_user_id']
-                    msg = f"📦 **Update for <@{user_id}>!**\nTracking: `{number}`\nStatus: **{current_stage_text}**\n📍 {new_status_desc}"
+                    
+                    # Pick an emoji based on stage
+                    emoji = "🚚"
+                    if stage == 10: emoji = "🚛" # Moving
+                    if stage == 30: emoji = "📦" # Pickup
+                    if stage == 40: emoji = "✅" # Delivered
+                    
+                    msg = f"{emoji} **Update for <@{user_id}>!**\nTracking: `{number}`\nStatus: **{current_status}**"
                     send_discord_message(msg)
                     
-                    # Update Database
-                    supabase.table('parcels').update({'last_status': current_stage_text}).eq('id', db_parcel['id']).execute()
-                    print(f"Updated {number} to {current_stage_text}")
+                    # Update Database so we don't notify again for this specific step
+                    supabase.table('parcels').update({'last_status': current_status}).eq('id', db_parcel['id']).execute()
+                    print(f"Updated {number} to: {current_status}")
+                
+                # If statuses match (db_parcel['last_status'] == current_status):
+                # We do NOTHING. The bot stays silent.
 
     except Exception as e:
         print(f"Error checking parcels: {e}")

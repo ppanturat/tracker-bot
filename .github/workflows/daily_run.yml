@@ -2,13 +2,13 @@ name: Daily Stock Report
 
 on:
   schedule:
-    #run at 02:00 UTC (09:00 AM Thailand Time)
+    #run at 02:00 UTC (14:00 Thailand Time)
     - cron: '30 6 * * *'
   #allow you to click "Run Now" manually for testing
   workflow_dispatch:
 
 jobs:
-  run_tracker:
+  run_daily_reports:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -17,17 +17,20 @@ jobs:
       - name: Install Dependencies
         run: pip install yfinance requests supabase
 
+      # Run Stock Report
       - name: Run Stock Tracker
         env:
-          DISCORD_URL: ${{ secrets.DISCORD_URL }}
+          # Make sure 'DISCORD_URL' matches what is inside check_stocks.py
+          STOCK_DISCORD_URL: ${{ secrets.STOCK_DISCORD_URL }} 
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        run: python check_stocks.py
+        run: python daily_stock_report.py
 
-      - name: Run Parcel Tracker
+      # Run Daily Parcel Summary 
+      - name: Run Daily Parcel Summary
         env:
-          DISCORD_URL: ${{ secrets.DISCORD_URL }}
+          PARCEL_DISCORD_URL: ${{ secrets.PARCEL_DISCORD_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          TRACK17_KEY: ${{ secrets.TRACK17_KEY }} # Don't forget this new secret!
-        run: python check_parcels.py
+          TRACK17_KEY: ${{ secrets.TRACK17_KEY }}
+        run: python daily_parcel_report.py

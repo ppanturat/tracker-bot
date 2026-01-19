@@ -1,0 +1,25 @@
+name: Parcel Watcher (30 Mins)
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run_active_tracking:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: pip install requests supabase
+
+      - name: Run Parcel Watcher
+        env:
+          PARCEL_TRACK_DISCORD_URL: ${{ secrets.PARCEL_TRACK_DISCORD_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          TRACK17_KEY: ${{ secrets.TRACK17_KEY }}
+        run: python check_parcels.py
