@@ -136,7 +136,7 @@ create table parcels (
 **`/parcels`** - Checking your active shipments.
 ![Parcels List Demo](path/to/your/screenshot_parcels_list.png)
 
-**Real-Time Update** - The alert you get when a parcel moves.
+**`Real-Time Update`** - The alert you get when a parcel moves.
 ![Parcel Alert Demo](path/to/your/screenshot_parcel_alert.png)
 ---
 
