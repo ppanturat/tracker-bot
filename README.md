@@ -109,6 +109,35 @@ create table parcels (
 
 ```
 ---
+## 📸 Appendix: Gallery
+
+### 1. Stock Commands
+**`/add_stock`** - Adding a new stock to the watchlist.
+<img width="1409" height="167" alt="Image" src="https://github.com/user-attachments/assets/e1350486-24fd-4c04-b6bf-e674ae3fb148" />
+
+**`/list_stock`** - Viewing the current configuration (Buckets & Targets).
+<img src="https://github.com/user-attachments/assets/886639fe-5f12-44a0-be31-236e8e5cfba8" width="600" alt="List Stock Demo" />
+
+**`/edit_stock`** - Updating a target price without deleting.
+<img width="1433" height="171" alt="Image" src="https://github.com/user-attachments/assets/44727d6d-d368-4d27-9112-1f9c2a979414" />
+
+**Error Handling** - The bot warns you if you try to add a duplicate stock.
+<img width="1572" height="209" alt="Image" src="https://github.com/user-attachments/assets/8ede664f-0244-448a-8732-59efda6135ff" />
+
+**Daily Price Report** - The automated report sent every day at 2:00 PM.
+![Daily Report Demo](path/to/your/screenshot_daily_report.png)
+
+---
+
+### 2. Parcel Commands
+**`/track`** - Registering a new tracking number.
+![Track Parcel Demo](path/to/your/screenshot_track.png)
+
+**`/parcels`** - Checking your active shipments.
+![Parcels List Demo](path/to/your/screenshot_parcels_list.png)
+
+**Real-Time Update** - The alert you get when a parcel moves.
+![Parcel Alert Demo](path/to/your/screenshot_parcel_alert.png)
+---
 
 *Created for personal use. 100% Automated.*
-
