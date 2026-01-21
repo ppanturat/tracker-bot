@@ -118,31 +118,31 @@ create table parcels (
 
 ### 1. Stock Commands
 **`/add_stock`** - Adding a new stock to the watchlist.
-<img width="800" alt="Add Stock Demo" src="https://github.com/user-attachments/assets/e1350486-24fd-4c04-b6bf-e674ae3fb148" />
+<img width="800" alt="Add Stock Demo" src="assets/add-stock.png" />
 
 **`/list_stock`** - Viewing the current configuration (Buckets & Targets).
-<img width="600" alt="List Stock Demo" src="https://github.com/user-attachments/assets/886639fe-5f12-44a0-be31-236e8e5cfba8" />
+<img width="600" alt="List Stock Demo" src="assets/list-stock.png" />
 
 **`/edit_stock`** - Updating a target price without deleting.
-<img width="800" alt="Edit Stock Demo" src="https://github.com/user-attachments/assets/44727d6d-d368-4d27-9112-1f9c2a979414" />
+<img width="800" alt="Edit Stock Demo" src="assets/edit-stock.png" />
 
 **Error Handling** - The bot warns you if you try to add a duplicate stock.
-<img width="800" alt="Edit Stock Error Demo" src="https://github.com/user-attachments/assets/8ede664f-0244-448a-8732-59efda6135ff" />
+<img width="800" alt="Edit Stock Error Demo" src="assets/edit-stock-error.png" />
 
 **Daily Price Report** - The automated report sent every day at 2:00 PM.
-<img width="600" height="865" alt="Daily Report Demo" src="https://github.com/user-attachments/assets/fdfac0e4-462f-490a-b745-fdbefc94a492" />
+<img width="600" alt="Daily Report Demo" src="assets/stock-daily-report.png" />
 
 ---
 
 ### 2. Parcel Commands
 **`/track`** - Registering a new tracking number.
-<img width="800" height="247" alt="Track Parcel Demo" src="https://github.com/user-attachments/assets/87cb3673-dc66-4231-bd00-4fbf34550d53" />
+<img width="800" alt="Track Parcel Demo" src="assets/track-parcel.png" />
 
 **`/parcels`** - Checking your active shipments.
-<img width="800" height="216" alt="Parcel List Demo" src="https://github.com/user-attachments/assets/445a2e46-e7d9-4185-a439-711268a61c49" />
+<img width="800" alt="Parcel List Demo" src="assets/list-active-parcel.png" />
 
 **`Real-Time Update`** - The alert you get when a parcel moves.
-![Parcel Alert Demo](path/to/your/screenshot_parcel_alert.png)
+<img width="800" alt="Parcel Alert Demo" src="assets/daily-parcel-report.png" />
 ---
 
 *Created for personal use. 100% Automated.*
