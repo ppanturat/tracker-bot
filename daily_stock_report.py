@@ -4,7 +4,7 @@ import yfinance as yf
 from datetime import datetime, timezone, timedelta
 from supabase import create_client
 
-# --- CONFIGURATION ---
+# --- CONFIGS ---
 STOCK_DISCORD_URL = os.environ.get('STOCK_DISCORD_URL')
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
@@ -85,7 +85,7 @@ def process_bucket(stock_list):
 
     return report_text, alert_text
 
-# --- MAIN EXECUTION ---
+# --- MESSAGE ---
 msg_a, alert_a = process_bucket(bucket_a)
 msg_b, alert_b = process_bucket(bucket_b)
 
