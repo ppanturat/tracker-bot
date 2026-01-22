@@ -27,6 +27,10 @@ def run_daily_report():
         print("No parcels to report. Exiting.")
         return 
 
+    for p in parcels:
+        if p.get('tracking_number'):
+            p['tracking_number'] = p['tracking_number'].strip().upper()
+
     # Ask 17Track for latest info
     payload = [{"number": p['tracking_number']} for p in parcels]
     headers = {"17token": TRACK17_KEY, "Content-Type": "application/json"}
@@ -37,9 +41,6 @@ def run_daily_report():
         resp = requests.post(url, json=payload, headers=headers)
         api_data = resp.json()
         
-        # DEBUG: Un-comment the next line if you get errors again
-        # print(f"DEBUG RAW DATA: {api_data}")
-
         if api_data.get("code") != 0:
             print(f"API Error: {api_data.get('message')}")
             return

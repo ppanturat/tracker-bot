@@ -26,6 +26,11 @@ def check_parcels():
     if not parcels:
         return 
 
+    for p in parcels:
+        if p.get('tracking_number'):
+            p['tracking_number'] = p['tracking_number'].strip().upper()
+
+    # Prepare Payload
     payload = [{"number": p['tracking_number']} for p in parcels]
 
     # Call 17Track API
@@ -46,7 +51,7 @@ def check_parcels():
         for info in track_infos:
             number = info.get("number")
             
-            # Find matching parcel in DB
+            # Find matching parcel in DB (Now robust because we stripped spaces above)
             db_parcel = next((p for p in parcels if p['tracking_number'] == number), None)
             
             if db_parcel:
@@ -62,8 +67,8 @@ def check_parcels():
                     current_status = latest_event.get("status_description")
                 
                 # Manual Map (Fallback)
+                stage_code = latest_status.get("status")
                 if not current_status:
-                    stage = latest_status.get("status")
                     status_map = {
                         0: "Registered (Waiting for Update)",
                         10: "In Transit",
@@ -71,14 +76,12 @@ def check_parcels():
                         40: "Delivered",
                         50: "Exception / Alert"
                     }
-                    current_status = status_map.get(stage, "Tracking...")
+                    current_status = status_map.get(stage_code, "Tracking...")
 
                 # Clean up length
                 current_status = current_status[:200]
 
-                # Special Case: If Delivered, force the status string to "Delivered" 
-                # so the DB query (.neq('Delivered')) stops fetching it next time.
-                stage_code = latest_status.get("status")
+                # Special Case: If Delivered, force status to "Delivered"
                 if stage_code == 40:
                     current_status = "Delivered"
 
