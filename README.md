@@ -62,8 +62,8 @@ Both **Vercel** and **GitHub Actions** require these secrets to function.
 | `STOCK_DISCORD_URL` | Webhook URL for the **`general` Channel**. | GitHub |
 | `PARCEL_DISCORD_URL`| Webhook URL for the **`parcel-track` Channel**. | GitHub |
 | `PARCEL_TRACK_DISCORD_URL`| Webhook URL for **Parcel Alerts** (30 min updates). | GitHub |
-| `SUPABASE_URL` | Your Supabase Project URL. | Vercel & GitHub |
-| `SUPABASE_KEY` | Your Supabase `service_role` or `anon` key. | Vercel & GitHub |
+| `SUPABASE_URL` | Supabase Project URL. | Vercel & GitHub |
+| `SUPABASE_KEY` | Supabase `service_role` or `anon` key. | Vercel & GitHub |
 | `TRACK17_KEY` | API Access Token from 17Track. | Vercel & GitHub |
 | `DISCORD_PUBLIC_KEY` | Public Key from Discord Developer Portal. | **Vercel Only** |
 
