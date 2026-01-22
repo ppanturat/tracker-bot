@@ -58,25 +58,30 @@ def check_parcels():
                     current_status = latest_event.get("status_description")
                 
                 if not current_status:
-                    stage_code = latest_status.get("status")
-                    sub_stage = latest_status.get("subStatus") # <--- New Check
-
-                    if stage_code == 0: 
-                        if sub_stage == "NotFound":
-                            current_status = "Registered (Waiting for Carrier Scan)"
-                        else:
-                            current_status = "Registered (System Processing)"
-                    elif stage_code == 10: current_status = "In Transit (Moving)"
-                    elif stage_code == 30: current_status = "Out for Delivery / Pickup"
-                    elif stage_code == 40: current_status = "Delivered Successfully"
-                    elif stage_code == 50: current_status = "Alert: Check Courier Website"
-                    else: 
-                        # If we get here, print the raw data to logs so we can debug later
-                        print(f"DEBUG UNKNOWN STATUS: Code={stage_code}, Sub={sub_stage}")
-                        current_status = f"Tracking (Stage: {stage_code})"
-
-                # Clean up length
-                current_status = current_status[:200]
+                    stage = latest_status.get("status") # This is "InTransit"
+                    
+                    # Map both Strings (New API) and Integers (Old API)
+                    status_map = {
+                        # String Values
+                        "NotFound": "Registered (Waiting for Scan)",
+                        "InfoReceived": "Registered (Info Received)",
+                        "InTransit": "In Transit (Moving)",
+                        "Expired": "Expired",
+                        "AvailableForPickup": "Ready for Pickup",
+                        "OutForDelivery": "Out for Delivery",
+                        "DeliveryFailure": "Delivery Failed",
+                        "Delivered": "Delivered Successfully",
+                        "Exception": "Alert / Exception",
+                        
+                        # Integer Fallbacks (Just in case)
+                        0: "Registered",
+                        10: "In Transit",
+                        30: "Ready for Pickup",
+                        40: "Delivered"
+                    }
+                    
+                    # Get the clean text, or default to "Tracking (InTransit)" if unknown
+                    current_status = status_map.get(stage, f"Tracking ({stage})")
 
                 # Check for change
                 if db_parcel['last_status'] != current_status:
