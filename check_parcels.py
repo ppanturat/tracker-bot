@@ -28,7 +28,7 @@ def check_parcels():
     payload = [{"number": p['tracking_number']} for p in parcels]
 
     # 3. Call 17Track API
-    headers = {"RF-TOKEN": TRACK17_KEY, "Content-Type": "application/json"}
+    headers = {"17token": TRACK17_KEY, "Content-Type": "application/json"}
     url = "https://api.17track.net/track/v2.2/gettrackinfo"
 
     try:
