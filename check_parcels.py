@@ -67,16 +67,16 @@ def check_parcels():
                 latest_event = track_info.get("latest_event", {})
                 latest_status = track_info.get("latest_status", {})
                 
-                # 1. Get Description (e.g. "Arrived at Sorting Center")
+                # Get Description (e.g. "Arrived at Sorting Center")
                 description = latest_event.get("context")
                 if not description:
                     description = latest_event.get("status_description")
 
-                # 2. Get Stage Code & SubStatus
+                # Get Stage Code & SubStatus
                 stage_code = latest_status.get("status")
                 sub_stage = latest_status.get("subStatus")
 
-                # 3. Smart Fallback (Deep Dive)
+                # Fallback
                 if not description:
                     if stage_code == 0: 
                         if sub_stage == "NotFound":
@@ -90,12 +90,12 @@ def check_parcels():
                     else: 
                         # Debug info so we know what code we missed
                         print(f"DEBUG UNKNOWN STATUS: Code={stage_code}, Sub={sub_stage}")
-                        description = f"Tracking (Stage: {stage_code})"
+                        description = f"Stage: {stage_code}"
 
-                # 4. Get Location
+                # Get Location
                 location = latest_event.get("location")
 
-                # 5. Combine: "Description, Location"
+                # Combine: "Description, Location"
                 if location:
                     current_status = f"{description}, {location}"
                 else:
@@ -108,7 +108,7 @@ def check_parcels():
                 if stage_code == 40:
                     current_status = "Delivered"
 
-                # Check for CHANGE
+                # Check for changes
                 if db_parcel['last_status'] != current_status:
                     user_id = db_parcel['discord_user_id']
                     
