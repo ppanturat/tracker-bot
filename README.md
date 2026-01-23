@@ -145,7 +145,7 @@ create table parcels (
 <img width="800" alt="Parcel List Demo" src="assets/list-active-parcel.png" />
 
 **`Real-Time Update`** - The alert you get when a parcel moves.
-<img width="800" alt="Parcel Alert Demo" src="assets/parcel-daily-report-new.png" />
+<img width="800" alt="Parcel Alert Demo" src="assets/parcel-daily-report.png" />
 
 ---
 
