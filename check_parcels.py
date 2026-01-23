@@ -90,7 +90,7 @@ def check_parcels():
                     else: 
                         # Debug info so we know what code we missed
                         print(f"DEBUG UNKNOWN STATUS: Code={stage_code}, Sub={sub_stage}")
-                        description = f"Stage: {stage_code}"
+                        description = f"{stage_code}"
 
                 # Get Location
                 location = latest_event.get("location")
