@@ -1,5 +1,6 @@
 import os
 import requests
+import re
 from supabase import create_client
 
 # --- CONFIGS ---
@@ -61,9 +62,7 @@ def run_daily_report():
     ids_to_delete = []
 
     for info in track_infos:
-        # Double check info is a dict
         if isinstance(info, str):
-            print(f"Skipping invalid item: {info}")
             continue
 
         number = info.get("number")
@@ -72,51 +71,56 @@ def run_daily_report():
         latest_event = track_info.get("latest_event") or {}
         latest_status = track_info.get("latest_status") or {}
         
-        # Get Description (e.g. "Arrived at Sorting Center")
+        # Get Description
         description = latest_event.get("context")
-        
         if not description:
             description = latest_event.get("status_description")
             
-        # Get Stage Code & SubStatus
+        # Get Stage 
         stage = latest_status.get("status")
         sub_stage = latest_status.get("subStatus")
 
-        # Fallback 
+        # Fallback
         if not description:
-            if stage == 0: 
-                if sub_stage == "NotFound":
-                    description = "Registered (Waiting for Carrier Scan)"
+            # Stage is a Number (0, 10, 40)
+            if isinstance(stage, int):
+                if stage == 0: 
+                    if sub_stage == "NotFound": description = "Registered (Waiting for Scan)"
+                    else: description = "Registered (System Processing)"
+                elif stage == 10: description = "In Transit"
+                elif stage == 30: description = "Out for Delivery"
+                elif stage == 40: description = "Delivered"
+                elif stage == 50: description = "Alert / Exception"
+                else: description = f"Status: {stage}"
+            
+            # Stage is already a String (e.g. "InTransit", "NotFound")
+            elif isinstance(stage, str):
+                if stage == "NotFound":
+                    description = "Registered (Waiting for Scan)"
                 else:
-                    description = "Registered (System Processing)"
-            elif stage == 10: description = "In Transit (Moving)"
-            elif stage == 30: description = "Out for Delivery / Pickup"
-            elif stage == 40: description = "Delivered Successfully"
-            elif stage == 50: description = "Alert: Check Courier Website"
-            else: 
-                # Last resort if even the stage is weird
-                description = f"Status Unknown: {stage}"
+                    # Insert space before capital letters (InTransit -> In Transit)
+                    description = re.sub(r'(?<!^)(?=[A-Z])', ' ', stage)
 
+        # Get Location
         location = latest_event.get("location")
-        
-        # Combine: "Description, Location" or just "Description"
         if location:
             final_desc = f"{description}, {location}"
         else:
             final_desc = description
 
-        # Emoji
+        # Emoji Logic
         emoji = "🚚"
-        if stage == 0: emoji = "📮"
-        if stage == 30: emoji = "📦"
-        if stage == 40: emoji = "✅"
-        if stage == 50: emoji = "⚠️"
+        # Check both int and string possibilities
+        if stage == 0 or stage == "NotFound": emoji = "📮"
+        if stage == 30 or stage == "PickUp": emoji = "📦"
+        if stage == 40 or stage == "Delivered": emoji = "✅"
+        if stage == 50 or stage == "Alert": emoji = "⚠️"
 
         line = f"{emoji} `{number}` : {final_desc}"
         message_lines.append(line)
 
         # Mark for deletion if Delivered
-        if stage == 40:
+        if stage == 40 or stage == "Delivered":
             ids_to_delete.append(number)
 
     # Send Report
