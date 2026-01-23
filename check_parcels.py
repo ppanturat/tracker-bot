@@ -26,6 +26,7 @@ def check_parcels():
     if not parcels:
         return 
 
+    # --- Data Cleanup ---
     for p in parcels:
         if p.get('tracking_number'):
             p['tracking_number'] = p['tracking_number'].strip().upper()
@@ -45,13 +46,23 @@ def check_parcels():
             print(f"17Track API Error: {data.get('message')}")
             return
             
-        track_infos = data.get("data", [])
+        raw_data = data.get("data", [])
+        if isinstance(raw_data, dict):
+            # If we got a dict, grab the list inside 'accepted'
+            track_infos = raw_data.get("accepted", [])
+        else:
+            # If we got a list, use it directly
+            track_infos = raw_data
 
         # Compare and Notify
         for info in track_infos:
+            # Double check info is a dict (Skip strings if they slip through)
+            if not isinstance(info, dict):
+                continue
+
             number = info.get("number")
             
-            # Find matching parcel in DB (Now robust because we stripped spaces above)
+            # Find matching parcel in DB
             db_parcel = next((p for p in parcels if p['tracking_number'] == number), None)
             
             if db_parcel:
@@ -59,14 +70,12 @@ def check_parcels():
                 latest_event = track_info.get("latest_event", {})
                 latest_status = track_info.get("latest_status", {})
                 
-                # Specific Carrier Text (e.g., "Arrived at Laksi")
+                # Status
                 current_status = latest_event.get("context")
                 
-                # Generic Description (e.g., "In Transit")
                 if not current_status:
                     current_status = latest_event.get("status_description")
                 
-                # Manual Map (Fallback)
                 stage_code = latest_status.get("status")
                 if not current_status:
                     status_map = {
@@ -78,19 +87,15 @@ def check_parcels():
                     }
                     current_status = status_map.get(stage_code, "Tracking...")
 
-                # Clean up length
                 current_status = current_status[:200]
 
-                # Special Case: If Delivered, force status to "Delivered"
                 if stage_code == 40:
                     current_status = "Delivered"
 
-                # Check for CHANGE
+                # Check for changes
                 if db_parcel['last_status'] != current_status:
-            
                     user_id = db_parcel['discord_user_id']
                     
-                    # Emoji Logic
                     emoji = "🚚"
                     if stage_code == 0: emoji = "📮"
                     if stage_code == 30: emoji = "📦"
@@ -100,11 +105,11 @@ def check_parcels():
                     msg = f"{emoji} **Update for <@{user_id}>!**\nTracking: `{number}`\nStatus: **{current_status}**"
                     send_discord_message(msg)
                     
-                    # Update DB
                     supabase.table('parcels').update({'last_status': current_status}).eq('id', db_parcel['id']).execute()
                     print(f"Updated {number} to: {current_status}")
                 
     except Exception as e:
+        # If it crashes, print the error but keep going
         print(f"Error checking parcels: {e}")
 
 if __name__ == "__main__":
