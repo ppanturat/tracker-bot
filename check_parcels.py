@@ -72,26 +72,31 @@ def check_parcels():
                 if not description:
                     description = latest_event.get("status_description")
 
-                # 2. Get Stage Code
+                # 2. Get Stage Code & SubStatus
                 stage_code = latest_status.get("status")
+                sub_stage = latest_status.get("subStatus")
 
-                # 3. Fallback if description is empty
+                # 3. Smart Fallback (Deep Dive)
                 if not description:
-                    status_map = {
-                        0: "Registered",
-                        10: "In Transit",
-                        30: "Ready for Pickup",
-                        40: "Delivered",
-                        50: "Alert"
-                    }
-                    description = status_map.get(stage_code, "Tracking...")
+                    if stage_code == 0: 
+                        if sub_stage == "NotFound":
+                            description = "Registered (Waiting for Carrier Scan)"
+                        else:
+                            description = "Registered (System Processing)"
+                    elif stage_code == 10: description = "In Transit (Moving)"
+                    elif stage_code == 30: description = "Out for Delivery / Pickup"
+                    elif stage_code == 40: description = "Delivered Successfully"
+                    elif stage_code == 50: description = "Alert: Check Courier Website"
+                    else: 
+                        # Debug info so we know what code we missed
+                        print(f"DEBUG UNKNOWN STATUS: Code={stage_code}, Sub={sub_stage}")
+                        description = f"Tracking (Stage: {stage_code})"
 
-                # 4. Get Location (The missing piece!)
+                # 4. Get Location
                 location = latest_event.get("location")
 
                 # 5. Combine: "Description, Location"
                 if location:
-                    # Cleans up cases where location might be redundant or empty
                     current_status = f"{description}, {location}"
                 else:
                     current_status = description
