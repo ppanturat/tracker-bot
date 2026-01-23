@@ -19,7 +19,7 @@ def send_discord_message(content):
 def check_parcels():
     print("Checking parcels...")
 
-    # Fetch active parcels (Ignore those already marked 'Delivered')
+    # Fetch active parcels
     response = supabase.table('parcels').select("*").neq('last_status', 'Delivered').execute()
     parcels = response.data
 
@@ -48,15 +48,12 @@ def check_parcels():
             
         raw_data = data.get("data", [])
         if isinstance(raw_data, dict):
-            # If we got a dict, grab the list inside 'accepted'
             track_infos = raw_data.get("accepted", [])
         else:
-            # If we got a list, use it directly
             track_infos = raw_data
 
         # Compare and Notify
         for info in track_infos:
-            # Double check info is a dict (Skip strings if they slip through)
             if not isinstance(info, dict):
                 continue
 
@@ -70,29 +67,43 @@ def check_parcels():
                 latest_event = track_info.get("latest_event", {})
                 latest_status = track_info.get("latest_status", {})
                 
-                # Status
-                current_status = latest_event.get("context")
-                
-                if not current_status:
-                    current_status = latest_event.get("status_description")
-                
+                # 1. Get Description (e.g. "Arrived at Sorting Center")
+                description = latest_event.get("context")
+                if not description:
+                    description = latest_event.get("status_description")
+
+                # 2. Get Stage Code
                 stage_code = latest_status.get("status")
-                if not current_status:
+
+                # 3. Fallback if description is empty
+                if not description:
                     status_map = {
-                        0: "Registered (Waiting for Update)",
+                        0: "Registered",
                         10: "In Transit",
                         30: "Ready for Pickup",
                         40: "Delivered",
-                        50: "Exception / Alert"
+                        50: "Alert"
                     }
-                    current_status = status_map.get(stage_code, "Tracking...")
+                    description = status_map.get(stage_code, "Tracking...")
 
+                # 4. Get Location (The missing piece!)
+                location = latest_event.get("location")
+
+                # 5. Combine: "Description, Location"
+                if location:
+                    # Cleans up cases where location might be redundant or empty
+                    current_status = f"{description}, {location}"
+                else:
+                    current_status = description
+
+                # Clean up length
                 current_status = current_status[:200]
 
+                # Special Case: Delivered
                 if stage_code == 40:
                     current_status = "Delivered"
 
-                # Check for changes
+                # Check for CHANGE
                 if db_parcel['last_status'] != current_status:
                     user_id = db_parcel['discord_user_id']
                     
@@ -109,7 +120,6 @@ def check_parcels():
                     print(f"Updated {number} to: {current_status}")
                 
     except Exception as e:
-        # If it crashes, print the error but keep going
         print(f"Error checking parcels: {e}")
 
 if __name__ == "__main__":
